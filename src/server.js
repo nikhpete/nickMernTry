@@ -1,10 +1,17 @@
 const express = require('express');
 
+const app = express();
+
 const connectDB = require('../config/db');
 connectDB();
-const app = express();
+
+//Init Middleware
+app.use(express.json());
+
+// initialize port
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`server started on port ${PORT}`));
+
 app.get('/', (req, res) => res.send('API running'));
 
 // define routes
