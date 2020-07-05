@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const gravtar = require('gravatar');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const config = require('config');
 const { check, validationResult } = require('express-validator');
 const User = require('../../models/User');
 
@@ -26,7 +28,7 @@ router.post(
       console.log('Check User Exists');
       let user = await User.findOne({ email });
       if (user) {
-        res.status(400).json({ errors: [{ msg: 'User Exists' }] });
+        return res.status(400).json({ errors: [{ msg: 'User Exists' }] });
       }
 
       console.log('get users gravtar');
@@ -40,7 +42,22 @@ router.post(
       console.log('save');
       await user.save();
 
-      res.send('User Registered');
+      const payload = {
+        user: {
+          id: user.id,
+        },
+      };
+
+      jwt.sign(
+        payload,
+        config.get('jwtSecret'),
+        { expiresIn: 360000 },
+        (err, token) => {
+          if (err) throw err;
+          console.log('jwt token');
+          res.json({ token });
+        }
+      );
     } catch (err) {
       console.log(err.message);
       res.status(500).send('Internal Server Error');
