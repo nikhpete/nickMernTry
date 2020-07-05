@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
+const gravtar = require('gravatar');
+const bcrypt = require('bcryptjs');
 const { check, validationResult } = require('express-validator');
+const User = require('../../models/User');
 
 // @route   POST api/users
 // @desc    Register User
@@ -12,12 +15,36 @@ router.post(
     check('email', 'Input a valid Email').isEmail(),
     check('password', 'Minimum password length is 6').isLength({ min: 6 }),
   ],
-  (req, res) => {
+  async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    res.send('User Route');
+    const { name, email, password } = req.body;
+
+    try {
+      console.log('Check User Exists');
+      let user = await User.findOne({ email });
+      if (user) {
+        res.status(400).json({ errors: [{ msg: 'User Exists' }] });
+      }
+
+      console.log('get users gravtar');
+      const avatar = gravtar.url(email, { s: '200', r: 'pg', d: 'mm' });
+      user = new User({ name, email, avatar, password });
+
+      console.log('encrypt pswd');
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(password, salt);
+
+      console.log('save');
+      await user.save();
+
+      res.send('User Registered');
+    } catch (err) {
+      console.log(err.message);
+      res.status(500).send('Internal Server Error');
+    }
   }
 );
 
