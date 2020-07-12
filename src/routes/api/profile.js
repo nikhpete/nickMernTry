@@ -107,4 +107,39 @@ router.post(
   }
 );
 
+// @route   Get api/profile
+// @desc    get all profile
+// @access  public
+router.get('/', async (req, res) => {
+  try {
+    const profiles = await Profile.find().populate('user', ['name', 'avatar']);
+    res.json(profiles);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('internal server error');
+  }
+});
+
+// @route   Get api/profile/user/:user_id
+// @desc    get profile by user id
+// @access  public
+router.get('/user/:user_id', async (req, res) => {
+  try {
+    const profile = await Profile.findOne({
+      user: req.params.user_id,
+    }).populate('user', ['name', 'avatar']);
+
+    if (!profile) {
+      return res.status(400).send('No profile exists');
+    }
+
+    res.json(profile);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind == 'ObjectId') {
+      return res.status(400).send('No profile exists');
+    }
+    res.status(500).send('internal server error');
+  }
+});
 module.exports = router;
