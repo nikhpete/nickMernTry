@@ -5,7 +5,7 @@ const ProfileSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'user',
   },
-  compsny: {
+  company: {
     type: String,
   },
   website: {
@@ -25,7 +25,7 @@ const ProfileSchema = new mongoose.Schema({
   bio: {
     type: String,
   },
-  githubuser: {
+  githubusername: {
     type: String,
   },
   exprience: [
@@ -87,7 +87,7 @@ const ProfileSchema = new mongoose.Schema({
       },
     },
   ],
-  socail: {
+  social: {
     youtube: {
       type: String,
     },

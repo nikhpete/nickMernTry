@@ -59,7 +59,7 @@ router.post(
         }
       );
     } catch (err) {
-      console.log(err.message);
+      console.err(err.message);
       res.status(500).send('Internal Server Error');
     }
   }
