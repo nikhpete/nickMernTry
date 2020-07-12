@@ -160,4 +160,87 @@ router.delete('/', auth, async (req, res) => {
     res.status(500).send('internal server error');
   }
 });
+
+// @route   Put api/profile/experience
+// @desc    add experience
+// @access  private
+router.put(
+  '/experience',
+  [
+    auth,
+    [
+      check('title', 'title is required').not().isEmpty(),
+      check('comapny', 'company is required').not().isEmpty(),
+      check('from', 'from date is required').not().isEmpty(),
+    ],
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty) {
+      res.status(400).json({ errors: errors.array() });
+    }
+
+    const {
+      title,
+      company,
+      location,
+      from,
+      to,
+      current,
+      description,
+    } = req.body;
+
+    const newExp = {
+      title,
+      company,
+      location,
+      from,
+      to,
+      current,
+      description,
+    };
+
+    try {
+      const profile = await Profile.findOne({ user: req.user.id });
+
+      profile.exprience.unshift(newExp);
+      await profile.save();
+
+      res.json(profile);
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Internal server error');
+    }
+  }
+);
+
+// @route   Delete api/profile/experience/:exp-id
+// @desc    delete experience
+// @access  private
+router.delete('/experience/:exp_id', auth, async (req, res) => {
+  try {
+    const profile = await Profile.findOne({ user: req.user.id });
+
+    //get experience to be removed
+    const removeIndex = profile.exprience
+      .map(item => item.id)
+      .indexOf(req.params.exp_id);
+
+    if (removeIndex == -1) {
+      return res.status(400).send('experience does not exists');
+    }
+
+    profile.exprience.splice(removeIndex, 1);
+    await profile.save();
+
+    res.json(profile);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind == 'ObjectId') {
+      return res.status(400).send('experience does not exists');
+    }
+    res.status(500).send('Internal server error');
+  }
+});
+
 module.exports = router;
