@@ -170,14 +170,14 @@ router.put(
     auth,
     [
       check('title', 'title is required').not().isEmpty(),
-      check('comapny', 'company is required').not().isEmpty(),
+      check('company', 'company is required').not().isEmpty(),
       check('from', 'from date is required').not().isEmpty(),
     ],
   ],
   async (req, res) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty) {
-      res.status(400).json({ errors: errors.array() });
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
 
     const {
@@ -240,6 +240,91 @@ router.delete('/experience/:exp_id', auth, async (req, res) => {
       return res.status(400).send('experience does not exists');
     }
     res.status(500).send('Internal server error');
+  }
+});
+
+// @route   Put api/profile/education
+// @desc    add education
+// @access  private
+router.put(
+  '/education',
+  [
+    auth,
+    [
+      check('school', 'school is required').not().isEmpty(),
+      check('degree', 'degree is required').not().isEmpty(),
+      check('fieldOfStudy', 'fieldOfStudy is required').not().isEmpty(),
+      check('from', 'from date is required').not().isEmpty(),
+    ],
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    console.log(errors);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const {
+      school,
+      degree,
+      fieldOfStudy,
+      from,
+      to,
+      current,
+      description,
+    } = req.body;
+
+    const newEd = {
+      school,
+      degree,
+      fieldOfStudy,
+      from,
+      to,
+      current,
+      description,
+    };
+
+    try {
+      const profile = await Profile.findOne({ user: req.user.id });
+
+      profile.education.unshift(newEd);
+
+      await profile.save();
+
+      res.json(profile);
+    } catch (err) {
+      console.error(er.message);
+      res.status(500).send('Internal server error');
+    }
+  }
+);
+
+// @route   DELETE api/profile/education/:ed_id
+// @desc    delete education
+// @access  private
+router.delete('/education/:ed_id', auth, async (req, res) => {
+  try {
+    const profile = await Profile.findOne({ user: req.user.id });
+
+    // get education to be removed
+    const removeIndex = profile.education
+      .map(item => item.id)
+      .indexOf(req.params.ed_id);
+
+    if (removeIndex == -1) {
+      return res.status(400).send('education does not exists');
+    }
+
+    profile.education.splice(removeIndex, 1);
+    await profile.save();
+
+    res.json(profile);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind == 'ObjectId') {
+      return res.status(400).send('education does not exists');
+    }
+    res.status(500).send('internal server error');
   }
 });
 
