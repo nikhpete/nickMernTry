@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server",
-    "server": "nodemon src/server"
+    "server": "nodemon src/server",
+    "client": "npm start --prefix client",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
   },
   "author": "Nikhil Joseph Peter",
   "license": "MIT",
